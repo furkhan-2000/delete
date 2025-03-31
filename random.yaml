@@ -23,6 +23,8 @@ spec:
     storage: 1000Mi
   accessModes:
     - ReadWriteOnce
+  hostPath:
+    path: /mnt/data
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
