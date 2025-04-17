@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workouts</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #2c1e1c;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      background: linear-gradient(0.25turn, #dac6b9, #c0b0a5, #a58e8d, #8c5a5a, #6c4b4b);
+    }
+    .background {
+      display: none;
+    }
+    .main-container {
+      width: 90%;
+      max-width: 600px;
+      margin: 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      z-index: 1;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    }
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #8c5a5a;
+      font-weight: bold;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+    }
+    label {
+      display: block;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      color: #3b2e2e;
+    }
+    input,
+    select {
+      width: 100%;
+      max-width: 250px;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 1rem;
+      border: 1px solid #a58e8d;
+      border-radius: 5px;
+      background: #fff5f5;
+      color: #2c1e1c;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    input:focus,
+    select:focus {
+      border-color: #8c5a5a;
+    }
+    select option {
+      background: #fff;
+      color: #2c1e1c;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background: #6c4b4b;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    }
+    button:hover {
+      background: #8c5a5a;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+      transform: scale(1.05);
+    }
+    .flash {
+      background: rgba(255, 205, 178, 0.8);
+      color: #5a332c;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+    }
+    #results {
+      margin-top: 20px;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    #results h3 {
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      color: #8c5a5a;
+    }
+    #results p,
+    #results li {
+      margin: 5px 0;
+      color: #2f1e1e;
+    }
+    ul {
+      list-style-type: disc;
+      padding-left: 20px;
+    }
+    .quotes {
+      margin-top: 30px;
+      text-align: center;
+      font-style: italic;
+      color: #3e2b2b;
+      font-size: 1rem;
+    }
+    @media (max-width: 600px) {
+      .container {
+        width: 90%;
+        padding: 15px;
+      }
+      h2 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="background"></div>
+  <div class="main-container">
+    <div class="container">
+      <h2>Workouts</h2>
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <form method="POST">
+        <label for="weight">Enter your weight (kg):</label>
+        <input type="text" name="weight" id="weight" placeholder="Enter your weight">
+        <label for="level">Select your workout level:</label>
+        <select name="level" id="level">
+          <option value="">--Select--</option>
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+        <button type="submit">Get Plan</button>
+      </form>
+    </div>
+    <div class="container" id="results">
+      {% if weight and selected_level and exercises and diet_plan %}
+        <h3>Weight: {{ weight }} kg</h3>
+        <h3>Workout Level: {{ selected_level|capitalize }}</h3>
+        <h3>Exercises</h3>
+        <p><strong>Cardio:</strong> {{ exercises.Cardio }}</p>
+        <p><strong>Strength:</strong> {{ exercises.Strength }}</p>
+        <p><strong>Flexibility:</strong> {{ exercises.Flexibility }}</p>
+        <p><strong>Balance:</strong> {{ exercises.Balance }}</p>
+        <h3>Diet Plan</h3>
+        <ul>
+          {% for key, value in diet_plan.items() %}
+            <li><strong>{{ key }}:</strong> {{ value }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+    <div class="quotes">
+      <p>"Calm your mind, stress less, and let your smile shine."</p>
+      <p>"Hydrate yourself—water is life."</p>
+      <p>"Eat well and live well; balance is the key to a healthy diet."</p>
+      <p>"Sleep is the best meditation."</p>
+    </div>
+  </div>
+  <footer style="text-align: center; color: rgba(255, 255, 255, 0.75); font-size: 0.85rem; margin-top: 2rem; z-index: 2; position: relative;">
+    <div>© 2025 Khan Mohammed. All Rights Reserved.</div>
+    <div>Designed and Developed by Khan Mohammed.</div>
+  </footer>
+</body>
+</html>
