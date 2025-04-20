@@ -20,7 +20,8 @@ pipeline {
         stage('build') {
             steps {
                 echo "this is building process"
-                sh "docker compose up -d"
+                sh " docker compose down && docker compose up -d"
+                echo "hi you have first down the container, and this is new container"
             }
         }
         stage('pushing image to docker-hub') {
