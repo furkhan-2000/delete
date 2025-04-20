@@ -1,7 +1,7 @@
 version: '3'
 services:
   web:
-    image: furkhan2000/shark:testing-web
+    build: .
     ports:
       - "5000:5000"
     volumes:
