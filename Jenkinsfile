@@ -30,7 +30,7 @@ pipeline {
         }
         stage('deploy') {
             steps {
-                echo "This is where we deploy"
+                echo "This is where we deploy, no deployemt"
             }
         }
     }
