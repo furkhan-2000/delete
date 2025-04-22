@@ -11,13 +11,15 @@ pipeline {
         }
         stage('code') {
             steps {
-                echo "This is a code process"
+                echo "This is a cloning process"
                 gitclone("https://github.com/furkhan-2000/delete", "main")
             }
         }
         stage('build') {
             steps {
-                echo "This is building process"
+                echo "container down 😔😔successfully"
+                sh "docker compose down"
+                echo "container running 🥳🥳successfully"
                 sh "docker compose up -d"
             }
         }
@@ -30,7 +32,7 @@ pipeline {
         }
         stage('deploy') {
             steps {
-                echo "This is where we deploy, no deployment"
+                echo "This is where we deploy, currently no deployment"
             }
         }
     }
