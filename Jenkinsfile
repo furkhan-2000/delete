@@ -17,7 +17,7 @@ pipeline {
         stage ('git cloning') {
            steps { 
              script {
-                  gitClone("https://github.com/furkhan-2000/delete", "main")
+                  gitclone("https://github.com/furkhan-2000/delete", "main")
              }
            } 
         }
