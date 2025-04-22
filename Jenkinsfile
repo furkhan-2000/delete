@@ -12,7 +12,7 @@ pipeline {
         stage('code') {
             steps {
                 echo "This is a code process"
-                git url: "https://github.com/furkhan-2000/delete", branch: "main"
+                git("https://github.com/furkhan-2000/delete", "main")
             }
         }
         stage('build') {
