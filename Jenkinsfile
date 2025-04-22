@@ -12,8 +12,14 @@ pipeline {
         stage('code') {
             steps {
                 echo "This is a code process"
-                git("https://github.com/furkhan-2000/delete", "main")
             }
+        }
+        stage ('git cloning') {
+           steps { 
+             script {
+                  gitCheckout("https://github.com/furkhan-2000/delete", "main")
+             }
+           } 
         }
         stage('build') {
             steps {
