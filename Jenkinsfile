@@ -1,39 +1,36 @@
-@Library("firstLib") _
 pipeline {
-    agent { label 'slave' }
+    agent any
     stages {
-        stage ('random') {
-            steps {
-                script{
-                    snippets()
-                }
-            }
-        }
-        
         stage('code') {
             steps {
-                script {
-                   gitclone("https://github.com/furkhan-2000/delete", "main") 
-                }
+                echo "This is a code process"
+                git url: "https://github.com/furkhan-2000/delete", branch: "main"
             }
         }
         stage('build') {
             steps {
-                echo "this is building process"
-                sh " docker compose down && docker compose up -d"
-                echo "hi you have first down the container, and this is new container"
+                echo "This is building process"
+                sh "docker compose up -d"
             }
         }
-        stage('pushing image to docker-hub') {
+        stage('tagging & pushing') {
             steps {
-                script {
-                   docker_push("testing-web", "latest", "furkhan2000") 
+                echo "This is where we tag and push our image"
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerHubCred',
+                    usernameVariable: 'DOCKERHUB_USERNAME',
+                    passwordVariable: 'DOCKERHUB_PASSWORD'
+                )]) {
+                    echo "This is tagging part"
+                    sh "docker tag testing-web:latest ${DOCKERHUB_USERNAME}/shark:workouts"
+                    sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
+                    sh "docker push ${DOCKERHUB_USERNAME}/shark:workouts"
                 }
             }
         }
         stage('deploy') {
             steps {
-                echo 'this is deployment stage'
+                echo "This is where we deploy"
             }
         }
     }
