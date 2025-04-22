@@ -31,7 +31,7 @@ pipeline {
         }
         stage('deploy') {
             steps {
-                echo "This is where we deploy, currently no deployment"
+                echo "This is where we deploy, currently no🥲 deployment"
             }
         }
     }
