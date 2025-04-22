@@ -1,6 +1,14 @@
+@Library ("global") _
 pipeline {
     agent any
     stages {
+        stage ('calling') {
+            steps {
+                script {
+                    myecho()
+                }
+            }
+        }
         stage('code') {
             steps {
                 echo "This is a code process"
