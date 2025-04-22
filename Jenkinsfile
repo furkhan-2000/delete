@@ -17,10 +17,9 @@ pipeline {
         }
         stage('build') {
             steps {
-                echo "container down 😔😔successfully"
-                sh "docker compose down"
-                echo "container running 🥳🥳successfully"
-                sh "docker compose up -d"
+                script {
+                    restart_container()
+                }
             }
         }
         stage('tagging & pushing') {
