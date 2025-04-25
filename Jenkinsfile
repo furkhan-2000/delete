@@ -34,10 +34,18 @@ pipeline {
                 sh "trivy fs --format table -o trivy-fs-report.html ."
             }
         }
-        stage ("Deploy and puhs on docker") {
+        stage ("Building image") {
             steps {
                 sh "docker compose down --rmi all && docker compose up -d "
             }
         }
+        stage ("push to DockerHub") {
+            steps {
+             withCredentials([usernamepassword(credentialsId: 'dockerhubCred',
+                                               usernameVariable: 'DOCKERHUB_USERNAME',
+                                               passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+             sh "docker tag testing-web:latest ${DOCKERHUB_USERNAME}/shark:workouts"
+             sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
+             sh "docker push $DOCKERHUB_USERNAME/shark:workouts"
     }
 }
