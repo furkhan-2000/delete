@@ -1,56 +1,54 @@
 @Library('shared') _
 pipeline {
-    agent any 
+    agent any
     environment {
-        SONAR_HOME = tool "sonar"
+        SONAR_HOME = tool 'sonar'
     }
     stages {
-        stage ("git clone")  {
+        stage('git clone') {
             steps {
-                 gitclone('https://github.com/furkhan-2000/delete.git', 'main')
+                gitclone('https://github.com/furkhan-2000/delete.git', 'main')
             }
         }
-        stage ("soanrQube Quality Analysis") {
+        stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv("sonar") {
-                    sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.projectName=workouts -Dsonar.projectKey=workouts"
+                withSonarQubeEnv('sonar') {
+                    sh """
+                      ${SONAR_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectName=workouts \
+                        -Dsonar.projectKey=workouts
+                    """
                 }
             }
         }
-        stage ("sonar Qube Quality Gate") {
+        stage('Quality Gate') {
             steps {
-                timeout(time: 2, unit: "MINUTES") {
-                    waitForQualityGate abortPipeline: false 
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: false
                 }
             }
         }
-        stage ("OWASP") {
+        stage('OWASP Dependency Check') {
             steps {
                 dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'owasp'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
-        stage ("trivy file system scan") {
+        stage('Trivy FS Scan') {
             steps {
-                sh "trivy fs --format table -o trivy-fs-report.html ."
+                sh 'trivy fs --format table -o trivy-fs-report.html .'
             }
         }
-        stage ("Building image") {
+        stage('Build Docker Image') {
             steps {
-                sh "docker compose down --rmi all && docker compose up -d "
+                sh 'docker compose down --rmi all && docker compose up -d'
             }
         }
-        stage ("push to DockerHub") {
+        stage('Push to Docker Hub') {
             steps {
-             withCredentials([usernamePassword(
-                                               credentialsId: 'dockerhubCred',
-                                               usernameVariable: 'DOCKERHUB_USERNAME',
-                                               passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-             sh "docker tag testing-web:latest ${DOCKERHUB_USERNAME}/shark:workouts"
-             sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
-             sh "docker push $DOCKERHUB_USERNAME/shark:workouts"
-             }
-          }
-       }
+                // This calls vars/dockerPush.groovy → call('testing-web','latest')
+                dockerPush('testing-web', 'latest')
+            }
+        }
     }
 }
