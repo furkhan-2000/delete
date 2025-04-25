@@ -7,7 +7,9 @@ pipeline {
     stages {
         stage('git clone') {
             steps {
+                script {
                 gitclone('https://github.com/furkhan-2000/delete.git', 'main')
+                }
             }
         }
         stage('SonarQube Analysis') {
@@ -46,8 +48,9 @@ pipeline {
         }
         stage('Push to Docker Hub') {
             steps {
-                // This calls vars/dockerPush.groovy → call('testing-web','latest')
-                dockerPush('testing-web', 'latest')
+                script {
+               sh 'docker_login('testing-web', 'latest')
+                }
             }
         }
     }
