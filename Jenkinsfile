@@ -47,5 +47,8 @@ pipeline {
              sh "docker tag testing-web:latest ${DOCKERHUB_USERNAME}/shark:workouts"
              sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
              sh "docker push $DOCKERHUB_USERNAME/shark:workouts"
+             }
+          }
+       }
     }
 }
