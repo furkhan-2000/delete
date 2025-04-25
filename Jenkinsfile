@@ -1,37 +1,42 @@
-@Library("global") _
 pipeline {
-    agent any
+    agent any 
+    environment {
+        SONAR_HOME = tool "sonar"
+    }
     stages {
-        stage('calling') {
+        stage ("git clone")  {
             steps {
-                script {
-                    myecho()
+                git url: "https://github.com/furkhan-2000/delete.git", branch: "main"
+            }
+        }
+        stage ("soanrQube Quality Analysis") {
+            steps {
+                withSonarQubeEnv("sonar") {
+                    sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.projectName=workouts -Dsonar.projectKey=workouts"
                 }
             }
         }
-        stage('code') {
+        stage ("sonar Qube Quality Gate") {
             steps {
-                echo "This is a cloning process"
-                gitclone("https://github.com/furkhan-2000/delete", "main")
-            }
-        }
-        stage('build') {
-            steps {
-                script {
-                    restart_container()
+                timeout(time: 2, unit: "MINUTES") {
+                    waitForQualityGate abortPipeline: false 
                 }
             }
         }
-        stage('tagging & pushing') {
+        stage ("OWASP") {
             steps {
-                script {
-                    docker_login("testing-web", "latest")
-                }
+                dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'owasp'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
-        stage('deploy') {
+        stage ("trivy file system scan") {
             steps {
-                echo "This is where we deploy, currently no🥲 deployment"
+                sh "trivy fs --format table -o trivy-fs-report.html ."
+            }
+        }
+        stage ("Deploy and puhs on docker") {
+            steps {
+                sh "docker compose up -d "
             }
         }
     }
