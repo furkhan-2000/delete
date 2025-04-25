@@ -41,7 +41,8 @@ pipeline {
         }
         stage ("push to DockerHub") {
             steps {
-             withCredentials([usernamepassword(credentialsId: 'dockerhubCred',
+             withCredentials([usernamePassword(
+                                               credentialsId: 'dockerhubCred',
                                                usernameVariable: 'DOCKERHUB_USERNAME',
                                                passwordVariable: 'DOCKERHUB_PASSWORD')]) {
              sh "docker tag testing-web:latest ${DOCKERHUB_USERNAME}/shark:workouts"
