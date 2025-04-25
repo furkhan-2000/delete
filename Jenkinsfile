@@ -36,7 +36,7 @@ pipeline {
         }
         stage ("Deploy and puhs on docker") {
             steps {
-                sh "docker compose up -d "
+                sh "docker compose down --rmi all && docker compose up -d "
             }
         }
     }
