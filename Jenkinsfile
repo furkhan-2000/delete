@@ -49,7 +49,7 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-               sh 'docker_login testing-web latest'
+                docker_login('testing-web', 'latest')
                 }
             }
         }
