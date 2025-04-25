@@ -1,3 +1,4 @@
+@Library('shared') _
 pipeline {
     agent any 
     environment {
@@ -6,7 +7,7 @@ pipeline {
     stages {
         stage ("git clone")  {
             steps {
-                git url: "https://github.com/furkhan-2000/delete.git", branch: "main"
+                 gitclone('https://github.com/furkhan-2000/delete.git', 'main')
             }
         }
         stage ("soanrQube Quality Analysis") {
