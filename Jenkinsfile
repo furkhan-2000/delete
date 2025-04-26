@@ -1,55 +1,51 @@
 @Library('shared') _
 pipeline {
-    agent any
+    agent any  
     environment {
         SONAR_HOME = tool 'sonar'
     }
     stages {
-        stage('git clone') {
+        stage("cloning git") {
             steps {
                 script {
-                gitclone('https://github.com/furkhan-2000/delete.git', 'main')
+                    gitclone("https://github.com/furkhan-2000/delete.git", "main")
                 }
             }
         }
-        stage('SonarQube Analysis') {
+        stage("sonarQube Quality Analysis") {
             steps {
                 withSonarQubeEnv('sonar') {
-                    sh """
-                      ${SONAR_HOME}/bin/sonar-scanner \
-                        -Dsonar.projectName=workouts \
-                        -Dsonar.projectKey=workouts
-                    """
+                    sh "${SONAR_HOME}/bin/sonar-scanner -Dsonar.projectName=workouts -Dsonar.projectKey=workouts"
                 }
             }
         }
-        stage('Quality Gate') {
+        stage("Sonar Quality Gates") {
             steps {
                 timeout(time: 2, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: false
                 }
             }
         }
-        stage('OWASP Dependency Check') {
+        stage("Owasp Dependency-Check") {
             steps {
                 dependencyCheck additionalArguments: '--scan ./', odcInstallation: 'owasp'
                 dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
-        stage('Trivy FS Scan') {
+        stage("trivy fs scan") {
             steps {
                 sh 'trivy fs --format table -o trivy-fs-report.html .'
             }
         }
-        stage('Build Docker Image') {
+        stage("deployment") {
             steps {
-                sh 'docker compose down --rmi all && docker compose up -d'
+                sh "docker compose down --rmi all && docker compose up -d"
             }
-        }
-        stage('Push to Docker Hub') {
+        }  
+        stage("pushing docker image") {
             steps {
                 script {
-                docker_login('testing-web', 'latest')
+                    docker_login('jenkins-testing-web', 'latest')
                 }
             }
         }
