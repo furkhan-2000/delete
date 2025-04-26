@@ -45,14 +45,9 @@ pipeline {
         }
         stage ("pushing image to docker") {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhubCred',
-                    usernameVariable: 'DOCKERHUB_USERNAME',
-                    passwordVariable: 'DOCKERHUB_PASSWORD')]) {
-                        sh "docker tag jenkins-testing-web:latest ${DOCKERHUB_USERNAME}/shark:testing-web"
-                        sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
-                        sh "docker push ${DOCKERHUB_USERNAME}/shark:testing-web"
-                    }
+                script {
+                   docker_login('testing-web', 'latest') 
+                }
             }
         }
     }
