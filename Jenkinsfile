@@ -1,53 +1,54 @@
-@Library('shared') _
 pipeline {
-    agent any  
+    agent any 
     environment {
-        SONAR_HOME = tool 'sonar'
+        SONAR_HOME = tool "sonar"
     }
     stages {
-        stage("cloning git") {
+        stage ("git-cloning") {
             steps {
-                script {
-                    gitclone("https://github.com/furkhan-2000/delete.git", "main")
-                }
+                git url: "https://github.com/furkhan-2000/delete.git", branch: "main"
             }
         }
-        stage("sonarQube Quality Analysis") {
+        stage ("sonarQube Quality Analysis") {
             steps {
-                withSonarQubeEnv('sonar') {
-                    sh "${SONAR_HOME}/bin/sonar-scanner -Dsonar.projectName=workouts -Dsonar.projectKey=workouts"
-                }
+               withSonarQubeEnv('sonar') {
+                   sh "${SONAR_HOME}/bin/sonar-scanner -Dsonar.projectName=Workouts -Dsonar.projectKey=Workouts"
+               }   
             }
         }
-        stage("Sonar Quality Gates") {
+        stage ("sonar Quality Gates") {
             steps {
-                timeout(time: 2, unit: 'MINUTES') {
+                timeout(time:2, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: false
                 }
             }
         }
-        stage("Owasp Dependency-Check") {
+        stage ("owasp Dependency-Check") {
             steps {
-              script {
-                  owaspdepcheck()
-              }
+                dependencyCheck additionalArguments: '--scan .', odcInstallation: 'owasp' 
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             }
         }
-        stage("trivy fs scan") {
+        stage ("trivy fs scan") {
             steps {
-                sh 'trivy fs --format table -o trivy-fs-report.html .'
+                sh "trivy fs --format table -o trivy-fs-report.html ."
             }
         }
-        stage("deployment") {
+        stage ("building image") {
             steps {
-                sh "docker compose down --rmi all && docker compose up -d"
+                sh "docker compose up -d"
             }
-        }  
-        stage("pushing docker image") {
+        }
+        stage ("pushing image to docker") {
             steps {
-                script {
-                    docker_login('jenkins-testing-web','latest')
-                }
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhubCred',
+                    usernameVariable: 'DOCKERHUB_USERNAME',
+                    passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                        sh "docker tag jenkins-testing-web:latest ${DOCKERHUB_USERNAME}/shark:testing-web"
+                        sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
+                        sh "docker push ${DOCKERHUB_USERNAME}/shark:testing-web"
+                    }
             }
         }
     }
