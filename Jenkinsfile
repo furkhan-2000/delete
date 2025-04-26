@@ -46,7 +46,7 @@ pipeline {
         stage ("pushing image to docker") {
             steps {
                 script {
-                   docker_login('testing-web', 'latest') 
+                   docker_login('jenkins-testing-web', 'latest') 
                 }
             }
         }
