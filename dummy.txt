@@ -1,0 +1,7 @@
+hiii 
+# 1. Remove the file from Git tracking (without deleting it locally)
+git rm --cached <filename>
+
+# 2. Commit the change to update GitHub
+git commit -m "Stop tracking <filename> and added to .gitignore"
+git push

@@ -1,0 +1,106 @@
+configMap:
+  name: confi
+  namespace: apple
+  data:
+    userid: "maaza"
+    key: "hsdkhdwkhjkkw"
+
+priorityClass:
+  name: pc1
+  value: 10000
+  globalDefault: false
+  description: "this is not for all pods, only for specific"
+
+persistentVolumeClaim:
+  name: pvc1
+  namespace: apple
+  spec:
+    storageClassName: standard
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: "600Mi"
+
+Deployment:
+  name: dep1
+  namespace: apple
+  spec:
+    replicas: 2
+    strategy:
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 0
+    selector:
+      matchLabels:
+        tier: sprite
+    template:
+      metadata:
+        labels:
+          tier: sprite
+      spec:
+        terminationGracePeriodSeconds: 0
+        priorityClassName: pc1
+        containers:
+          - name: con1
+            image: furkhan2000/shark:patient-reg
+            ports:
+              - containerPort: 5003
+            volumeMounts:
+              - name: pvc-vol
+                mountPath: /pvc-path
+              - name: configmap-vol
+                mountPath: /config
+            resources:
+              requests:
+                cpu: 150m
+                memory: 150Mi
+              limits:
+                cpu: "550m"
+                memory: 600Mi
+            readinessProbe:
+              tcpSocket:
+                port: 5003
+              initialDelaySeconds: 5
+              periodSeconds: 10
+            livenessProbe:
+              tcpSocket:
+                port: 5003
+              initialDelaySeconds: 10
+              periodSeconds: 20
+        volumes:
+          - name: pvc-vol
+            persistentVolumeClaim:
+              claimName: pvc1
+          - name: configmap-vol
+            configMap:
+              name: confi
+
+service:
+  name: svc1
+  namespace: apple
+  spec:
+    selector:
+      tier: sprite
+    ports:
+      - port: 5003
+        targetPort: 5003
+        protocol: TCP
+
+HorizontalPodAutoscaler:
+  name: hpa1
+  namespace: apple
+  spec:
+    scaleTargetRef:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: dep1
+    minReplicas: 2
+    maxReplicas: 8
+    metrics:
+      - type: Resource
+        resource:
+          name: cpu
+          target:
+            type: Utilization
+            averageUtilization: 80

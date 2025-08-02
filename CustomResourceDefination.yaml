@@ -1,0 +1,200 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: genzs.web.worldwar.com
+spec:
+  group: web.worldwar.com
+  scope: Cluster
+  names:
+    singular: gen
+    plural: genzs
+    kind: Genz
+    shortNames: ["gen"]
+    categories: ["all"]
+  versions:
+    # Deprecated version
+    - name: v1alpha4
+      served: true
+      storage: false
+      deprecated: true
+      deprecationWarning: "This version will be removed in next release"
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              additionalProperties: true
+              required: ["image", "port"]
+              properties:
+                image:
+                  type: string
+                  description: "Deprecated image - migrate to v1"
+                replicas:
+                  type: integer
+                  default: 1
+                  minimum: 1
+                port:
+                  type: integer
+                  minimum: 1
+                  maximum: 65535
+                environment:
+                  type: array
+                  description: "Environment variables"
+                  items:
+                    type: object
+                    required: ["name", "value"]
+                    properties:
+                      name:
+                        type: string
+                      value:
+                        type: string
+            status:
+              type: object
+              properties:
+                readyReplicas:
+                  type: integer
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Image
+          type: string
+          jsonPath: .spec.image
+        - name: Replicas
+          type: integer
+          jsonPath: .spec.replicas
+        - name: Port
+          type: integer
+          jsonPath: .spec.port
+        - name: Ready
+          type: integer
+          jsonPath: .status.readyReplicas
+                                                                                     # Current stable version
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: ["image", "port"]
+              properties:
+                image:
+                  type: string
+                  description: "Container image name"
+                replicas:
+                  type: integer
+                  default: 1
+                  minimum: 1
+                port:
+                  type: integer
+                  default: 80
+                  minimum: 1
+                  maximum: 65535
+                environment:
+                  type: array
+                  description: "Environment variables"
+                  items:
+                    type: object
+                    required: ["name", "value"]
+                    properties:
+                      name:
+                        type: string
+                      value:
+                        type: string
+                imagePullPolicy:
+                  type: string
+                  enum:
+                    - Always
+                    - IfNotPresent
+                    - Never
+                  default: IfNotPresent
+                serviceType:
+                  type: string
+                  enum:
+                    - NodePort
+                    - ClusterIP
+                    - LoadBalancer
+                  default: ClusterIP
+                priorityclass:
+                  type: string
+                  description: "PriorityClass name for pod scheduling"
+                resources:
+                  type: object
+                  description: "Compute resource requirements"
+                  properties:
+                    requests:
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                          description: "this is for requests"
+                        memory:
+                          type: string
+                          description: "this is for requests"
+                    limits:
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                          description: "this is for limits"
+                        memory:
+                          type: string
+                          description: "this is for limits"
+                strategy:
+                  type: object
+                  description: "Deployment update strategy"
+                  properties:
+                    type:
+                      type: string
+                      enum:
+                        - RollingUpdate
+                        - Recreate
+                      default: RollingUpdate
+                    rollingUpdate:
+                      type: object
+                      properties:
+                        maxSurge:
+                          type: string
+                        maxUnavailable:
+                          type: string
+                securityContext:
+                  type: object
+                  description: "Pod security context"
+                  properties:
+                    runAsNonRoot:
+                      type: boolean
+                      default: true
+                    runAsUser:
+                      type: integer
+                      minimum: 1000
+                    runAsGroup:
+                      type: integer
+                      minimum: 1000
+                    fsGroup:
+                      type: integer
+                      minimum: 1000
+            status:
+              type: object
+              properties:
+                url:
+                  type: string
+                readyReplicas:
+                  type: integer
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Image
+          type: string
+          jsonPath: .spec.image
+        - name: Replicas
+          type: integer
+          jsonPath: .spec.replicas
+        - name: Port
+          type: integer
+          jsonPath: .spec.port
+        - name: Ready
+          type: integer
+          jsonPath: .status.readyReplicas

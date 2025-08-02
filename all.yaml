@@ -1,0 +1,142 @@
+# ------------------------
+# ConfigMap
+# ------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configMap.name }}
+  namespace: {{ .Values.configMap.namespace }}
+data:
+  userid: {{ .Values.configMap.data.userid }}
+  key: {{ .Values.configMap.data.key }}
+---
+# ------------------------
+# PriorityClass
+# ------------------------
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: {{ .Values.priorityClass.name }}
+value: {{ .Values.priorityClass.value }}
+globalDefault: {{ .Values.priorityClass.globalDefault }}
+description: {{ .Values.priorityClass.description }}
+---
+# ------------------------
+# PersistentVolumeClaim
+# ------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.persistentVolumeClaim.name }}
+  namespace: {{ .Values.persistentVolumeClaim.namespace }}
+spec:
+  storageClassName: {{ .Values.persistentVolumeClaim.spec.storageClassName }}
+  accessModes:
+    - {{ index .Values.persistentVolumeClaim.spec.accessModes 0 }}
+  resources:
+    requests:
+      storage: {{ .Values.persistentVolumeClaim.spec.resources.requests.storage }}
+---
+# ------------------------
+# Deployment
+# ------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.Deployment.name }}
+  namespace: {{ .Values.Deployment.namespace }}
+spec:
+  replicas: {{ .Values.Deployment.spec.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: {{ .Values.Deployment.spec.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.Deployment.spec.strategy.rollingUpdate.maxUnavailable }}
+  selector:
+    matchLabels:
+      tier: {{ .Values.Deployment.spec.selector.matchLabels.tier }}
+  template:
+    metadata:
+      labels:
+        tier: {{ .Values.Deployment.spec.template.metadata.labels.tier }}
+    spec:
+      priorityClassName: {{ .Values.Deployment.spec.template.spec.priorityClassName }}
+      terminationGracePeriodSeconds: {{ .Values.Deployment.spec.template.spec.terminationGracePeriodSeconds }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+
+      containers:
+        - name: {{ (index .Values.Deployment.spec.template.spec.containers 0).name }}
+          image: {{ (index .Values.Deployment.spec.template.spec.containers 0).image }}
+          ports:
+            - containerPort: {{ (index (index .Values.Deployment.spec.template.spec.containers 0).ports 0).containerPort }}
+          volumeMounts:
+            - name: {{ (index (index .Values.Deployment.spec.template.spec.containers 0).volumeMounts 0).name }}
+              mountPath: {{ (index (index .Values.Deployment.spec.template.spec.containers 0).volumeMounts 0).mountPath }}
+            - name: {{ (index (index .Values.Deployment.spec.template.spec.containers 0).volumeMounts 1).name }}
+              mountPath: {{ (index (index .Values.Deployment.spec.template.spec.containers 0).volumeMounts 1).mountPath }}
+          resources:
+            requests:
+              cpu: {{ (index .Values.Deployment.spec.template.spec.containers 0).resources.requests.cpu }}
+              memory: {{ (index .Values.Deployment.spec.template.spec.containers 0).resources.requests.memory }}
+            limits:
+              cpu: {{ (index .Values.Deployment.spec.template.spec.containers 0).resources.limits.cpu }}
+              memory: {{ (index .Values.Deployment.spec.template.spec.containers 0).resources.limits.memory }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ (index .Values.Deployment.spec.template.spec.containers 0).readinessProbe.tcpSocket.port }}
+            initialDelaySeconds: {{ (index .Values.Deployment.spec.template.spec.containers 0).readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ (index .Values.Deployment.spec.template.spec.containers 0).readinessProbe.periodSeconds }}
+          livenessProbe:
+            tcpSocket:
+              port: {{ (index .Values.Deployment.spec.template.spec.containers 0).livenessProbe.tcpSocket.port }}
+            initialDelaySeconds: {{ (index .Values.Deployment.spec.template.spec.containers 0).livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ (index .Values.Deployment.spec.template.spec.containers 0).livenessProbe.periodSeconds }}
+
+      volumes:
+        - name: {{ (index .Values.Deployment.spec.template.spec.volumes 0).name }}
+          persistentVolumeClaim:
+            claimName: {{ (index .Values.Deployment.spec.template.spec.volumes 0).persistentVolumeClaim.claimName }}
+        - name: {{ (index .Values.Deployment.spec.template.spec.volumes 1).name }}
+          configMap:
+            name: {{ (index .Values.Deployment.spec.template.spec.volumes 1).configMap.name }}
+---
+# ------------------------
+# Service
+# ------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.service.name }}
+  namespace: {{ .Values.service.namespace }}
+spec:
+  selector:
+    tier: {{ .Values.service.spec.selector.tier }}
+  ports:
+    - port: {{ (index .Values.service.spec.ports 0).port }}
+      targetPort: {{ (index .Values.service.spec.ports 0).targetPort }}
+      protocol: {{ (index .Values.service.spec.ports 0).protocol }}
+---
+# ------------------------
+# HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Values.HorizontalPodAutoscaler.name }}
+  namespace: {{ .Values.HorizontalPodAutoscaler.namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: {{ .Values.HorizontalPodAutoscaler.spec.scaleTargetRef.apiVersion }}
+    kind: {{ .Values.HorizontalPodAutoscaler.spec.scaleTargetRef.kind }}
+    name: {{ .Values.HorizontalPodAutoscaler.spec.scaleTargetRef.name }}
+  minReplicas: {{ .Values.HorizontalPodAutoscaler.spec.minReplicas }}
+  maxReplicas: {{ .Values.HorizontalPodAutoscaler.spec.maxReplicas }}
+  metrics:
+    - type: {{ (index .Values.HorizontalPodAutoscaler.spec.metrics 0).type }}
+      resource:
+        name: {{ (index .Values.HorizontalPodAutoscaler.spec.metrics 0).resource.name }}
+        target:
+          type: {{ (index .Values.HorizontalPodAutoscaler.spec.metrics 0).resource.target.type }}
+          averageUtilization: {{ (index .Values.HorizontalPodAutoscaler.spec.metrics 0).resource.target.averageUtilization }}
